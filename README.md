@@ -12,4 +12,10 @@ barcode scanners, ML objects detection and so on
 So, the project also provide a functionality, which supports chain of video filters
 for given camera
 
+For filters demonstration purposes added a barcode reader filter based on ZXing library:
+[ZXing-C++ Library](https://github.com/zxing-cpp/zxing-cpp)
+and Qt wrapper, taken from here
+[![Scythe Studio](./assets/scytheStudioLogo.png)](https://scythe-studio.com)
+and slightly adjusted
+
 

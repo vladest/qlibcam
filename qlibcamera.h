@@ -11,7 +11,6 @@
 #include "libcamera/pixel_format.h"
 #include "qcontainerfwd.h"
 #include "qfuturewatcher.h"
-#include "qlibcameramanager.h"
 
 #include <common/image.h>
 #include <libcamera/camera.h>
@@ -23,7 +22,6 @@
 #include <libcamera/stream.h>
 
 #include "qlibcameramanager.h"
-#include "qtmetamacros.h"
 #include "qvideoframe.h"
 #include "qvideoframeformat.h"
 
@@ -36,7 +34,7 @@ class AbstractVideoFilter : public QObject
 
 public:
     explicit AbstractVideoFilter(QObject *parent = nullptr);
-    ~AbstractVideoFilter();
+    virtual ~AbstractVideoFilter() = default;
 
     bool isActive() const { return m_active; }
     void setActive(bool v);
@@ -58,9 +56,12 @@ class QLibCamera : public QThread
     Q_PROPERTY(QString model READ model CONSTANT FINAL)
     Q_PROPERTY(QString id READ id CONSTANT FINAL)
     Q_PROPERTY(QString cameraLocation READ cameraLocation CONSTANT FINAL)
-    Q_PROPERTY(QList<AbstractVideoFilter*> filters READ filters NOTIFY videoFiltersChanged);
-    Q_PROPERTY(QStringList formats READ formats NOTIFY formatsChanged);
+    Q_PROPERTY(QList<AbstractVideoFilter*> filters READ filters NOTIFY videoFiltersChanged)
+    Q_PROPERTY(QStringList formats READ formats NOTIFY formatsChanged)
     Q_PROPERTY(bool isCapturing READ isCapturing NOTIFY isCapturingChanged FINAL)
+    Q_PROPERTY(QVideoFrameFormat::PixelFormat frameFormat READ frameFormat WRITE setFrameFormat
+                   NOTIFY frameFormatChanged FINAL)
+    Q_PROPERTY(QSize frameSize READ frameSize WRITE setFrameSize NOTIFY frameSizeChanged FINAL)
 
 public:
     explicit QLibCamera(QLibCameraManager *manager, const QString &cameraID, QObject *parent = nullptr);
@@ -78,6 +79,7 @@ public:
 
     QList<AbstractVideoFilter*> filters() const;
     void addFilter(AbstractVideoFilter *filter);
+    void removeFilter(AbstractVideoFilter *filter);
 
     QStringList formats() const;
 
@@ -104,13 +106,9 @@ Q_SIGNALS:
     void cameraChanged();
     void videoFiltersChanged();
     void videoFiltersFinished();
-
     void formatsChanged();
-
     void isCapturingChanged();
-
     void frameFormatChanged();
-
     void frameSizeChanged();
 
 protected:
@@ -133,7 +131,6 @@ private:
     void renderComplete(libcamera::FrameBuffer *buffer);
     int queueRequest(libcamera::Request *request);
 
-    void removeFilter(AbstractVideoFilter *filter);
     void retrieveViefinderInfo();
 
 private:
@@ -160,7 +157,7 @@ private:
     QVideoSink *m_videoSink = nullptr;
     QVideoFrameFormat::PixelFormat m_frameFormat = QVideoFrameFormat::Format_YUYV;
     QSize m_frameSize;
-    PixelFormat m_prefferedPixelFormat;
+    libcamera::PixelFormat m_prefferedPixelFormat;
     QSize m_prefferedResolution;
     uint64_t m_lastBufferTime = 0;
     QLibCameraManager *m_manager = nullptr;
@@ -169,9 +166,6 @@ private:
     QString m_cameraLocation { "Unknown"};
     QList<AbstractVideoFilter *> m_videoFilters;
     QFutureWatcher<bool> m_filtersWatcher;
-    QList<StreamFormats> m_viewfinderInfo;
+    QList<libcamera::StreamFormats> m_viewfinderInfo;
     QStringList m_formats;
-    Q_PROPERTY(QVideoFrameFormat::PixelFormat frameFormat READ frameFormat WRITE setFrameFormat
-                   NOTIFY frameFormatChanged FINAL)
-    Q_PROPERTY(QSize frameSize READ frameSize WRITE setFrameSize NOTIFY frameSizeChanged FINAL)
 };

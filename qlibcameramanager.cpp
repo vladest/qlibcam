@@ -13,8 +13,10 @@
 
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qimagevideobuffer_p.h>
+#include <utility>
 
 #include "qlibcamera.h"
+#include "qlogging.h"
 
 Q_GLOBAL_STATIC(QLibCameraManager, singletonInstance);
 
@@ -158,18 +160,23 @@ void QLibCameraManager::initManager()
     Q_EMIT camerasChanged();
     m_cameraManager->cameraAdded.connect(this, &QLibCameraManager::addCamera);
     m_cameraManager->cameraRemoved.connect(this, &QLibCameraManager::removeCamera);
+    m_initialized = true;
 }
 
 void QLibCameraManager::finishManager()
 {
+    if (!m_initialized) {
+        return;
+    }
     m_cameraManager->cameraAdded.disconnect(this);
     m_cameraManager->cameraRemoved.disconnect(this);
 
-    for (auto cam : m_cameras.values()) {
+    for (auto cam : std::as_const(m_cameras)) {
         delete cam;
     }
     m_cameraManager->stop();
     delete m_cameraManager;
+    m_initialized = false;
 }
 
 QList<QLibCamera *> QLibCameraManager::cameras() const
@@ -180,10 +187,30 @@ QList<QLibCamera *> QLibCameraManager::cameras() const
 QStringList QLibCameraManager::camerasModels() const
 {
     QStringList names;
-    for (auto cam : m_cameras.values()) {
+    for (auto cam : std::as_const(m_cameras)) {
         names.append(cam->model());
     }
     return names;
+}
+
+void QLibCameraManager::addCameraFilter(AbstractVideoFilter *filter, const QString &cameraId)
+{
+    for (auto cam : std::as_const(m_cameras)) {
+        cam->addFilter(filter);
+        if (cam->id() == cameraId) {
+            return;
+        }
+    }
+}
+
+void QLibCameraManager::removeCameraFilter(AbstractVideoFilter *filter, const QString& cameraId)
+{
+    for (auto cam : std::as_const(m_cameras)) {
+        cam->removeFilter(filter);
+        if (cam->id() == cameraId) {
+            return;
+        }
+    }
 }
 
 QLibCamera *QLibCameraManager::camera(const QString &cameraId) const

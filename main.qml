@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import QtMultimedia
 import CamerasManager
 
@@ -46,7 +47,7 @@ ApplicationWindow {
                 id: comboBox
                 width: 300
                 height: 50
-                enabled: currentCamera.isCapturing === false
+                enabled: currentCamera !== null && currentCamera.isCapturing === false
                 model: CamerasManager.camerasModels
                 onCurrentIndexChanged: {
                     console.warn("Camera selected:", comboBox.currentText, currentIndex)
@@ -95,5 +96,12 @@ ApplicationWindow {
     VideoOutput {
         id: videoOutput
         anchors.fill: parent
+    }
+    footer: RowLayout {
+        TextField {
+            id: textField
+            Layout.fillWidth: true
+            text: barcodeFilter.captured
+        }
     }
 }

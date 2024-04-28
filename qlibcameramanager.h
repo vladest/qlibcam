@@ -19,6 +19,7 @@
 
 class QEventLoop;
 class QLibCamera;
+class AbstractVideoFilter;
 
 using namespace libcamera;
 
@@ -50,10 +51,15 @@ public:
     QList<QLibCamera*> cameras() const;
     QStringList camerasModels() const;
 
-    static const QMap<libcamera::PixelFormat, QVideoFrameFormat::PixelFormat> nativeFormats;
+    // add or remove for all registered cameras or camera with ginen id
+    void addCameraFilter(AbstractVideoFilter *filter, const QString& cameraId = QString());
+    void removeCameraFilter(AbstractVideoFilter *filter, const QString& cameraId = QString());
 
+    static const QMap<libcamera::PixelFormat, QVideoFrameFormat::PixelFormat> nativeFormats;
     static libcamera::PixelFormat toLibCameraFormat(QVideoFrameFormat::PixelFormat format);
     static QVideoFrameFormat::PixelFormat toQtFormat(libcamera::PixelFormat format);
+
+    void finishManager();
 
 public Q_SLOTS:
     QLibCamera* camera(const QString &cameraId) const;
@@ -66,7 +72,6 @@ Q_SIGNALS:
     void camerasChanged();
 
 protected:
-  void finishManager();
   void initManager();
 
 private:
@@ -76,6 +81,7 @@ private:
 private:
   libcamera::CameraManager *m_cameraManager = nullptr;
   QMap<QString, QLibCamera*> m_cameras;
+  bool m_initialized = false;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QLibCameraManager::StreamingRoles)

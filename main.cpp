@@ -11,12 +11,14 @@
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlContext>
+
 #include <QtDebug>
+#include <SBarcodeFilter.h>
 
 void signalHandler([[maybe_unused]] int signal)
 {
 	qInfo() << "Exiting";
-    //QLibCameraManager::instance()->exit();
 	qApp->quit();
 }
 
@@ -35,6 +37,10 @@ int main(int argc, char **argv)
     qmlRegisterSingletonInstance<QLibCameraManager>("CamerasManager", 1, 0, "CamerasManager",
                                                  QLibCameraManager::instance());
 
+    SBarcodeFilter barcodeFilter;
+    barcodeFilter.setActive(true);
+    QLibCameraManager::instance()->addCameraFilter(&barcodeFilter);
+
     QQmlApplicationEngine engine;
     const QUrl url("qrc:/main.qml");
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -42,8 +48,12 @@ int main(int argc, char **argv)
             if (!obj && url == objUrl)
                 QCoreApplication::exit(-1);
         }, Qt::QueuedConnection);
+
+    engine.rootContext()->setContextProperty("barcodeFilter", &barcodeFilter);
     engine.load(url);
 
 	ret = app.exec();
+    // stop cameras before QmlEngine gets destroyed
+    QLibCameraManager::instance()->finishManager();
 	return ret;
 }

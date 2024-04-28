@@ -18,6 +18,7 @@ unix: CONFIG += link_pkgconfig
 unix: PKGCONFIG += libcamera
 
 DEFINES += QT_NO_KEYWORDS
+#DEFINES += SCODES_DEBUG
 unix:!android: {
       target.path = /opt/$${TARGET}
       QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
@@ -25,4 +26,4 @@ unix:!android: {
 
 !isEmpty(target.path): INSTALLS += target
 
-
+include(scodes/SCodes.pri)

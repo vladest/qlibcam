@@ -457,11 +457,11 @@ void QLibCamera::processViewfinder(FrameBuffer *buffer)
     for (const FrameMetadata::Plane &plane : metadata.planes())
         bytesused << QString::number(plane.bytesused);
 
-    qDebug().noquote()
-        << QString("seq: %1").arg(metadata.sequence, 6, 10, QLatin1Char('0'))
-        << "bytesused: {" << bytesused.join(", ")
-        << "} timestamp:" << metadata.timestamp
-        << "fps:" << Qt::fixed << qSetRealNumberPrecision(2) << fps << "format:" << m_frameFormat;
+    // qDebug().noquote()
+    //     << QString("seq: %1").arg(metadata.sequence, 6, 10, QLatin1Char('0'))
+    //     << "bytesused: {" << bytesused.join(", ")
+    //     << "} timestamp:" << metadata.timestamp
+    //     << "fps:" << Qt::fixed << qSetRealNumberPrecision(2) << fps << "format:" << m_frameFormat;
 
     /* Render the frame on the viewfinder. */
     size_t size = buffer->metadata().planes()[0].bytesused;
@@ -554,12 +554,18 @@ int QLibCamera::queueRequest(Request *request)
 
 void QLibCamera::addFilter(AbstractVideoFilter *filter)
 {
+    if (!filter)
+        return;
+    if (m_videoFilters.contains(filter))
+        return;
     m_videoFilters.append(filter);
     Q_EMIT videoFiltersChanged();
 }
 
 void QLibCamera::removeFilter(AbstractVideoFilter *filter)
 {
+    if (!filter)
+        return;
     m_videoFilters.removeAll(filter);
     Q_EMIT videoFiltersChanged();
 }
@@ -669,6 +675,8 @@ bool QLibCamera::filtersRunner(const QVideoFrame &frame)
     }
     return true;
 }
+
+AbstractVideoFilter::AbstractVideoFilter(QObject *parent) : QObject(parent) {}
 
 void AbstractVideoFilter::setActive(bool v)
 {
