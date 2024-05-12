@@ -19,6 +19,72 @@ ApplicationWindow {
         }
     }
 
+    function resetRects() {
+        for (var i = 0; i < videoOutput.data.length; ++i) {
+            var item = videoOutput.data[i];
+            if (item !== null && item.objectName === "tf2FilterBox") {
+                item.destroy();
+            }
+        }
+    }
+
+    Component {
+        id: tf2FilterBox
+        Item {
+            objectName: "tf2FilterBox"
+            property alias text: txt.text
+            property alias conf: conftxt.text
+            property color boxColor: "red"
+            Row {
+                spacing: 5
+                Text {
+                    id: txt
+                    anchors.top: parent.top
+                    font.pixelSize: 16
+                    color: boxColor
+                }
+                Text {
+                    id: conftxt
+                    anchors.top: parent.top
+                    font.pixelSize: 16
+                    color: boxColor
+                }
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                anchors.topMargin: 20
+                color: "transparent"
+                border.width: 2
+                border.color: boxColor
+            }
+        }
+    }
+
+    Connections {
+        target: tf2Filter
+        function onProcessingFinished(results) {
+            var r = results.rects();
+            var names = results.names();
+            var confidences = results.confidences();
+            var colors = results.colors();
+            resetRects();
+            for (var i = 0; i < r.length; i++) {
+                var xr = videoOutput.width / videoOutput.sourceRect.width;
+                var yr = videoOutput.height / videoOutput.sourceRect.height;
+                var rect = tf2FilterBox.createObject(videoOutput);
+                rect.text = names[i]
+                rect.conf = confidences[i]
+                rect.boxColor = colors[i]
+
+                rect.x = /*video.x + */r[i].x * xr;
+                rect.y = /*video.y + */r[i].y * yr;
+                rect.width = r[i].width * xr;
+                rect.height = r[i].height * yr;
+            }
+        }
+    }
+
     header: ToolBar {
         Row {
             Button {
@@ -97,6 +163,7 @@ ApplicationWindow {
         id: videoOutput
         anchors.fill: parent
     }
+
     footer: RowLayout {
         TextField {
             id: textField

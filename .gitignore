@@ -2,4 +2,6 @@
 Makefile
 build/
 *.a
+*.so
+*.so.*
 *.deb

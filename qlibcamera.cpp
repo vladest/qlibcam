@@ -1,5 +1,4 @@
 #include "qlibcamera.h"
-#include "libcamera/pixel_format.h"
 #include "qeventloop.h"
 #include "qlibcameramanager.h"
 #include "qvideoframe.h"
@@ -12,6 +11,8 @@
 #include <libcamera/property_ids.h>
 #include <libcamera/request.h>
 #include <libcamera/stream.h>
+#include <libcamera/pixel_format.h>
+#include "abstractvideofilter.h"
 
 #include <QDebug>
 #include <QQmlListProperty>
@@ -674,12 +675,4 @@ bool QLibCamera::filtersRunner(const QVideoFrame &frame)
         }
     }
     return true;
-}
-
-AbstractVideoFilter::AbstractVideoFilter(QObject *parent) : QObject(parent) {}
-
-void AbstractVideoFilter::setActive(bool v)
-{
-    m_active = v;
-    Q_EMIT activeChanged();
 }

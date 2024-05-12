@@ -1,7 +1,7 @@
 #ifndef QRSCANNERFILTER_H
 #define QRSCANNERFILTER_H
 
-#include "../qlibcamera.h"
+#include "../abstractvideofilter.h"
 #include <QtConcurrent/QtConcurrent>
 #include <qqml.h>
 

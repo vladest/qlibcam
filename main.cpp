@@ -15,13 +15,13 @@
 
 #include <QtDebug>
 #include <SBarcodeFilter.h>
+#include <tensorflowfilter.h>
 
 void signalHandler([[maybe_unused]] int signal)
 {
 	qInfo() << "Exiting";
 	qApp->quit();
 }
-
 
 int main(int argc, char **argv)
 {
@@ -41,6 +41,10 @@ int main(int argc, char **argv)
     barcodeFilter.setActive(true);
     QLibCameraManager::instance()->addCameraFilter(&barcodeFilter);
 
+    TensorFlowFilter tfFilter;
+    tfFilter.setActive(true);
+    QLibCameraManager::instance()->addCameraFilter(&tfFilter);
+
     QQmlApplicationEngine engine;
     const QUrl url("qrc:/main.qml");
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
@@ -50,6 +54,7 @@ int main(int argc, char **argv)
         }, Qt::QueuedConnection);
 
     engine.rootContext()->setContextProperty("barcodeFilter", &barcodeFilter);
+    engine.rootContext()->setContextProperty("tf2Filter", &tfFilter);
     engine.load(url);
 
 	ret = app.exec();
